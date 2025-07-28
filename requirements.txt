@@ -1,2 +1,2 @@
-tkinter
-pathlib 
+pathlib
+tkmacosx

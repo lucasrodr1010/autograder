@@ -29,21 +29,49 @@ class AutograderGUI:
         
         # Setup GUI
         self.setup_gui()
-        
+
     def setup_gui(self):
-        # Main frame
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        
-        # Configure grid weights
-        self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
-        main_frame.columnconfigure(1, weight=1)
-        
+        # ── make the entire window vertically scrollable ────────────────
+        self.outer_canvas = tk.Canvas(self.root, highlightthickness=0)
+        vscroll_total = ttk.Scrollbar(self.root, orient="vertical", command=self.outer_canvas.yview)
+        self.outer_canvas.configure(yscrollcommand=vscroll_total.set)
+
+        self.outer_canvas.pack(side="left",  fill="both", expand=True)
+        vscroll_total.pack(side="right", fill="y")
+
+        # all existing widgets will live inside this frame
+        main_frame = ttk.Frame(self.outer_canvas, padding="10")
+        window_id  = self.outer_canvas.create_window((0, 0), window=main_frame, anchor="nw")
+
+        # keep scroll region and inner‑frame width in sync
+        def _resize(event):
+            self.outer_canvas.configure(
+                scrollregion=self.outer_canvas.bbox("all"))
+            self.outer_canvas.itemconfigure(window_id, width=self.outer_canvas.winfo_width())
+
+        def _stretch_inner(event):
+            # keep inner frame exactly as wide as the canvas viewport
+            self.outer_canvas.itemconfigure(window_id, width=event.width)
+
+        main_frame.bind("<Configure>", _resize)
+        self.outer_canvas.bind("<Configure>", _stretch_inner)
+
+        # (from here onwards the original body of setup_gui() begins …)
+        # ----------------------------------------------------------------
         # Title
-        title_label = ttk.Label(main_frame, text="COP2273 Autograder", font=("Arial", 16, "bold"))
+        title_label = ttk.Label(main_frame, text="COP2273 Autograder",
+                                font=("Arial", 16, "bold"))
         title_label.grid(row=0, column=0, columnspan=3, pady=(0, 20))
+
+        # make columns grow with the window
+        # 1️⃣  Let column 1 do the stretching, keep cols 0 & 2 compact
+        main_frame.columnconfigure(0, weight=0)   # labels
+        main_frame.columnconfigure(1, weight=1)              # big widgets
+        main_frame.columnconfigure(2, weight=0)   # buttons
+
+        # 2️⃣  Remove hard‑coded character widths so the widgets may expand
         
+
         # Mode Selection
         mode_frame = ttk.LabelFrame(main_frame, text="Mode Selection", padding="10")
         mode_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
@@ -60,21 +88,21 @@ class AutograderGUI:
         
         # Base Solution
         ttk.Label(path_frame, text="Base Solution:").grid(row=0, column=0, sticky=tk.W, pady=5)
-        self.base_entry = ttk.Entry(path_frame, textvariable=self.base_solution_path, width=50)
+        self.base_entry = ttk.Entry(path_frame, textvariable=self.base_solution_path)
         self.base_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(5, 5), pady=5)
         self.base_button = ttk.Button(path_frame, text="Browse", command=self.browse_base_solution)
         self.base_button.grid(row=0, column=2, pady=5)
         
         # Assignment Folder/File
         ttk.Label(path_frame, text="Assignment Path:").grid(row=1, column=0, sticky=tk.W, pady=5)
-        self.assignment_entry = ttk.Entry(path_frame, textvariable=self.assignment_folder_path, width=50)
+        self.assignment_entry = ttk.Entry(path_frame, textvariable=self.assignment_folder_path)
         self.assignment_entry.grid(row=1, column=1, sticky=(tk.W, tk.E), padx=(5, 5), pady=5)
         self.assignment_button = ttk.Button(path_frame, text="Browse", command=self.browse_assignment_path)
         self.assignment_button.grid(row=1, column=2, pady=5)
         
         # Utility Path (optional)
         ttk.Label(path_frame, text="Utility Path (optional):").grid(row=2, column=0, sticky=tk.W, pady=5)
-        utility_entry = ttk.Entry(path_frame, textvariable=self.utility_path, width=50)
+        utility_entry = ttk.Entry(path_frame, textvariable=self.utility_path)
         utility_entry.grid(row=2, column=1, sticky=(tk.W, tk.E), padx=(5, 5), pady=5)
         ttk.Button(path_frame, text="Browse", command=self.browse_utility_path).grid(row=2, column=2, pady=5)
         
@@ -91,28 +119,46 @@ class AutograderGUI:
         ttk.Button(test_controls, text="Add Test Case", command=self.add_test_case).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(test_controls, text="Clear All", command=self.clear_test_cases).pack(side=tk.LEFT)
         
-        # Test cases scrollable frame
-        test_canvas = tk.Canvas(test_frame)
-        scrollbar = ttk.Scrollbar(test_frame, orient="vertical", command=test_canvas.yview)
-        self.test_cases_frame = ttk.Frame(test_canvas)
-        
-        self.test_cases_frame.bind(
-            "<Configure>",
-            lambda e: test_canvas.configure(scrollregion=test_canvas.bbox("all"))
+        style  = ttk.Style(self.root)
+        default_bg = style.lookup("TFrame", "background") or style.lookup(".", "background")
+
+        # ─── Test cases scrollable frame ──────────────────────────────
+        self.test_canvas = tk.Canvas(
+        test_frame,
+        highlightthickness=0,
+        bg=default_bg     
         )
-        
-        test_canvas.create_window((0, 0), window=self.test_cases_frame, anchor="nw")
-        test_canvas.configure(yscrollcommand=scrollbar.set)
-        
-        test_canvas.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        scrollbar.grid(row=1, column=1, sticky=(tk.N, tk.S))
-        
-        test_frame.columnconfigure(0, weight=1)
-        test_frame.rowconfigure(1, weight=1)
+
+        vscroll = ttk.Scrollbar(test_frame, orient="vertical",
+                                command=self.test_canvas.yview)
+        self.test_canvas.configure(yscrollcommand=vscroll.set)
+
+        # geometry
+        self.test_canvas.grid(row=1, column=0, sticky="nsew")
+        vscroll.grid(row=1, column=1, sticky="ns")
+
+        # inner frame that will hold the individual test‑case widgets
+        self.test_cases_frame = ttk.Frame(self.test_canvas, style="CanvasHost.TFrame")
+        style.configure("CanvasHost.TFrame", background=default_bg)
+        inner_window = self.test_canvas.create_window(
+            (0, 0), window=self.test_cases_frame, anchor="nw")
+
+        # let the canvas know its size whenever the inner frame changes
+        def _on_frame_config(event):
+            self.test_canvas.configure(scrollregion=self.test_canvas.bbox("all"))
+            # stretch the inner window to the full canvas width
+            self.test_canvas.itemconfigure(inner_window, width=event.width)
+
+        self.test_cases_frame.bind("<Configure>", _on_frame_config)
         
         # Add default test case
         self.add_test_case()
-        
+
+
+
+       
+
+       
         # Options Section
         options_frame = ttk.LabelFrame(main_frame, text="Options", padding="10")
         options_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
@@ -151,8 +197,12 @@ class AutograderGUI:
         ttk.Button(results_controls_frame, text="Save Results", command=self.save_results).pack(side="left")
         
         # Results text area
-        self.results_text = scrolledtext.ScrolledText(results_frame, height=15, width=80)
-        self.results_text.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.results_text = scrolledtext.ScrolledText(
+        results_frame, height=15, font=("Consolas", 10),
+        )
+        self.results_text.configure(bg=default_bg, fg="black", insertbackground="black")
+        self.results_text.grid(row=1, column=0, sticky="nsew")
+        
         
         # Configure main frame weights
         main_frame.rowconfigure(3, weight=1)
@@ -165,7 +215,65 @@ class AutograderGUI:
         self.status_var = tk.StringVar(value="Ready to grade")
         status_label = ttk.Label(status_frame, textvariable=self.status_var, relief="sunken", anchor="w")
         status_label.pack(fill="x")
-        
+
+        self._setup_scrolling()
+
+    def _setup_scrolling(self):
+        """
+        Binds the mouse wheel event to the entire application and intelligently
+        scrolls the correct canvas. It avoids interfering with self-scrolling
+        widgets like Text and ScrolledText.
+        """
+        def _on_global_scroll(event):
+            # Find the widget directly under the mouse pointer
+            widget_under_pointer = self.root.winfo_containing(event.x_root, event.y_root)
+            
+            if widget_under_pointer is None:
+                return # Not over any of our widgets
+
+            # Check if the widget is a type that should scroll itself.
+            # We walk up the widget hierarchy from the widget under the pointer.
+            w = widget_under_pointer
+            while w:
+                if isinstance(w, (tk.Text, tk.Listbox)):
+                    # This widget has its own scrollbar, so let it handle the event.
+                    return
+                # Stop if we reach the top-level window
+                if w == self.root:
+                    break
+                try:
+                    w = w.master
+                except Exception:
+                    break # Should not happen, but a safeguard
+
+            # If we got here, we're not over a self-scrolling widget.
+            # Now, decide which of our two main canvases to scroll.
+            try:
+                # Get the screen coordinates of the inner 'test_canvas'
+                x, y, width, height = self.test_canvas.winfo_rootx(), self.test_canvas.winfo_rooty(), self.test_canvas.winfo_width(), self.test_canvas.winfo_height()
+                # Check if the mouse pointer is inside the bounds of the 'test_canvas'
+                if x <= event.x_root < x + width and y <= event.y_root < y + height:
+                    canvas_to_scroll = self.test_canvas
+                else:
+                    # If not, it must be over the main 'outer_canvas'
+                    canvas_to_scroll = self.outer_canvas
+            except tk.TclError:
+                # Fallback in case a widget was destroyed during the event
+                canvas_to_scroll = self.outer_canvas
+
+            # Perform the scroll action on the identified canvas
+            if sys.platform == "darwin":  # macOS
+                canvas_to_scroll.yview_scroll(-1 * event.delta, "units")
+            else:  # Windows/Linux
+                canvas_to_scroll.yview_scroll(-1 * int(event.delta / 120), "units")
+
+        # Bind the master scroll function to the entire application
+        self.root.bind_all("<MouseWheel>", _on_global_scroll)
+        # Extra bindings for Linux scroll buttons
+        self.root.bind_all("<Button-4>", lambda e: self.outer_canvas.yview_scroll(-1, "units"))
+        self.root.bind_all("<Button-5>", lambda e: self.outer_canvas.yview_scroll(1, "units"))
+
+
     def on_mode_change(self):
         """Handle mode change between file and folder"""
         mode = self.mode.get()
@@ -670,50 +778,42 @@ class AutograderGUI:
         
     def open_results_window(self):
         """Open results in a new resizable window"""
-        # Create new window
         results_window = tk.Toplevel(self.root)
         results_window.title("Autograder Results - Detailed View")
         results_window.geometry("1000x700")
-        
-        # Make window resizable
         results_window.resizable(True, True)
-        
-        # Create frame for the window
+
         window_frame = ttk.Frame(results_window)
         window_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Add controls
+
         controls_frame = ttk.Frame(window_frame)
         controls_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        ttk.Button(controls_frame, text="Clear", command=lambda: results_text.delete(1.0, tk.END)).pack(side="left", padx=(0, 10))
-        ttk.Button(controls_frame, text="Save", command=lambda: self.save_text_to_file(results_text.get(1.0, tk.END))).pack(side="left", padx=(0, 10))
-        ttk.Button(controls_frame, text="Copy All", command=lambda: self.copy_to_clipboard(results_text.get(1.0, tk.END))).pack(side="left")
-        
-        # Create text widget with scrollbars
+
         text_frame = ttk.Frame(window_frame)
         text_frame.pack(fill=tk.BOTH, expand=True)
+
+        results_window_text = tk.Text(text_frame, wrap="none", font=("Consolas", 10)) # Use 'none' for wrap to make horizontal scrollbar useful
+        v_scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=results_window_text.yview)
+        h_scrollbar = ttk.Scrollbar(text_frame, orient="horizontal", command=results_window_text.xview)
+        results_window_text.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
         
-        results_text = tk.Text(text_frame, wrap=tk.WORD, font=("Consolas", 10))
-        v_scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=results_text.yview)
-        h_scrollbar = ttk.Scrollbar(text_frame, orient="horizontal", command=results_text.xview)
-        results_text.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
-        
-        # Grid layout for text and scrollbars
-        results_text.grid(row=0, column=0, sticky="nsew")
+        # Corrected button commands to refer to results_window_text
+        ttk.Button(controls_frame, text="Clear", command=lambda: results_window_text.delete(1.0, tk.END)).pack(side="left", padx=(0, 10))
+        ttk.Button(controls_frame, text="Save", command=lambda: self.save_text_to_file(results_window_text.get(1.0, tk.END))).pack(side="left", padx=(0, 10))
+        ttk.Button(controls_frame, text="Copy All", command=lambda: self.copy_to_clipboard(results_window_text.get(1.0, tk.END))).pack(side="left")
+
+        results_window_text.grid(row=0, column=0, sticky="nsew")
         v_scrollbar.grid(row=0, column=1, sticky="ns")
         h_scrollbar.grid(row=1, column=0, sticky="ew")
-        
+
         text_frame.columnconfigure(0, weight=1)
         text_frame.rowconfigure(0, weight=1)
-        
-        # Copy current results to new window
+
+        # Corrected variable to get text from the main window's results text widget
         current_results = self.results_text.get(1.0, tk.END)
-        results_text.insert(1.0, current_results)
-        
-        # Focus on the new window
+        results_window_text.insert(1.0, current_results)
+
         results_window.focus_set()
-        results_text.focus_set()
         
     def save_results(self):
         """Save results to a file"""
@@ -756,9 +856,12 @@ class TestCaseFrame(ttk.Frame):
         # Input lines
         ttk.Label(self, text=f"Test Case {index + 1}:").grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
         
+        style = ttk.Style(self.autograder_gui.root)
+        default_bg   = style.lookup("TFrame", "background") or style.lookup(".", "background")
         # Input text area
         self.input_text = tk.Text(self, height=3, width=50)
         self.input_text.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(5, 5))
+        self.input_text.configure(bg=default_bg, fg="black", insertbackground="black")
         
         # Remove button
         ttk.Button(self, text="Remove", command=self.remove).grid(row=0, column=2, padx=(5, 0))
@@ -772,6 +875,7 @@ class TestCaseFrame(ttk.Frame):
         self.input_text.bind("<FocusOut>", self.on_focus_out)
         self.placeholder_text = "Enter test input here..."
         self.has_content = False
+        
         
     def on_focus_in(self, event):
         """Handle focus in event"""
@@ -813,9 +917,10 @@ class TestCaseFrame(ttk.Frame):
             # Widget already destroyed
             pass
 
-
 def main():
     root = tk.Tk()
+    if sys.platform == "darwin":                       
+        root.tk.call("ttk::style", "theme", "use", "clam")  # force light (clam) theme on Mac
     app = AutograderGUI(root)
     root.mainloop()
 
