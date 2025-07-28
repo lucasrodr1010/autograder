@@ -101,7 +101,7 @@ A visual autograder for COP2273 assignments that can automatically test student 
 **Use when each student has their own folder with multiple files**
 
 ```
-PCA6/
+assignments/PCA6/
 ├── LR/                    # Base solution
 │   ├── LR_PCA6.py
 │   └── fibonacci_ratio.py
@@ -114,8 +114,8 @@ PCA6/
 **Configuration:**
 
 - Mode: Folder
-- Base Solution: `PCA6/LR/`
-- Assignment Path: `PCA6/`
+- Base Solution: `assignments/PCA6/LR/`
+- Assignment Path: `assignments/PCA6/`
 - Utility Path: (leave empty or set to UTILITIES/)
 
 #### File Mode (e.g., single script assignments)
