@@ -148,7 +148,6 @@ class AutograderGUI:
         
         ttk.Button(results_controls_frame, text="Clear Results", command=self.clear_results).pack(side="left", padx=(0, 10))
         ttk.Button(results_controls_frame, text="Open in New Window", command=self.open_results_window).pack(side="left", padx=(0, 10))
-        ttk.Button(results_controls_frame, text="Pull Out Output", command=self.pull_out_output).pack(side="left", padx=(0, 10))
         ttk.Button(results_controls_frame, text="Save Results", command=self.save_results).pack(side="left")
         
         # Results text area
@@ -665,44 +664,9 @@ class AutograderGUI:
         self.root.after(0, lambda: self.results_text.insert(tk.END, text))
         self.root.after(0, lambda: self.results_text.see(tk.END))
         
-        # Update any open output windows
-        if hasattr(self, 'output_windows'):
-            for window in self.output_windows:
-                try:
-                    # Find the text widget in the window
-                    for child in window.winfo_children():
-                        if isinstance(child, ttk.Frame):
-                            for grandchild in child.winfo_children():
-                                if isinstance(grandchild, ttk.Frame):
-                                    for great_grandchild in grandchild.winfo_children():
-                                        if isinstance(great_grandchild, tk.Text):
-                                            great_grandchild.insert(tk.END, text)
-                                            great_grandchild.see(tk.END)
-                                            break
-                except:
-                    # Window might be closed, ignore errors
-                    pass
-        
     def clear_results(self):
         """Clear the results text area"""
         self.results_text.delete(1.0, tk.END)
-        
-        # Clear any open output windows
-        if hasattr(self, 'output_windows'):
-            for window in self.output_windows:
-                try:
-                    # Find the text widget in the window
-                    for child in window.winfo_children():
-                        if isinstance(child, ttk.Frame):
-                            for grandchild in child.winfo_children():
-                                if isinstance(grandchild, ttk.Frame):
-                                    for great_grandchild in grandchild.winfo_children():
-                                        if isinstance(great_grandchild, tk.Text):
-                                            great_grandchild.delete(1.0, tk.END)
-                                            break
-                except:
-                    # Window might be closed, ignore errors
-                    pass
         
     def open_results_window(self):
         """Open results in a new resizable window"""
@@ -780,126 +744,7 @@ class AutograderGUI:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to copy to clipboard: {str(e)}")
             
-    def pull_out_output(self):
-        """Pull out output into a separate draggable and scalable window"""
-        # Create new window
-        output_window = tk.Toplevel(self.root)
-        output_window.title("Autograder Output - Draggable & Scalable")
-        output_window.geometry("800x600")
-        
-        # Make window resizable and allow it to be moved
-        output_window.resizable(True, True)
-        output_window.overrideredirect(False)  # Keep window decorations for dragging
-        
-        # Create frame for the window
-        window_frame = ttk.Frame(output_window)
-        window_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Add title bar with controls
-        title_frame = ttk.Frame(window_frame)
-        title_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        title_label = ttk.Label(title_frame, text="Autograder Output", font=("Arial", 12, "bold"))
-        title_label.pack(side="left")
-        
-        # Add control buttons
-        controls_frame = ttk.Frame(title_frame)
-        controls_frame.pack(side="right")
-        
-        ttk.Button(controls_frame, text="Clear", command=lambda: output_text.delete(1.0, tk.END)).pack(side="left", padx=(0, 5))
-        ttk.Button(controls_frame, text="Save", command=lambda: self.save_text_to_file(output_text.get(1.0, tk.END))).pack(side="left", padx=(0, 5))
-        ttk.Button(controls_frame, text="Copy", command=lambda: self.copy_to_clipboard(output_text.get(1.0, tk.END))).pack(side="left", padx=(0, 5))
-        ttk.Button(controls_frame, text="Close", command=output_window.destroy).pack(side="left")
-        
-        # Add zoom controls
-        zoom_frame = ttk.Frame(window_frame)
-        zoom_frame.pack(fill=tk.X, pady=(0, 5))
-        
-        ttk.Label(zoom_frame, text="Font Size:").pack(side="left", padx=(0, 5))
-        
-        # Font size variable and controls
-        font_size_var = tk.IntVar(value=10)
-        
-        def change_font_size(delta):
-            current_size = font_size_var.get()
-            new_size = max(6, min(24, current_size + delta))  # Limit between 6 and 24
-            font_size_var.set(new_size)
-            output_text.configure(font=("Consolas", new_size))
-        
-        ttk.Button(zoom_frame, text="A-", command=lambda: change_font_size(-1)).pack(side="left", padx=(0, 2))
-        ttk.Button(zoom_frame, text="A+", command=lambda: change_font_size(1)).pack(side="left", padx=(0, 10))
-        
-        size_label = ttk.Label(zoom_frame, textvariable=font_size_var)
-        size_label.pack(side="left")
-        
-        # Create text widget with scrollbars
-        text_frame = ttk.Frame(window_frame)
-        text_frame.pack(fill=tk.BOTH, expand=True)
-        
-        output_text = tk.Text(text_frame, wrap=tk.WORD, font=("Consolas", 10))
-        v_scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=output_text.yview)
-        h_scrollbar = ttk.Scrollbar(text_frame, orient="horizontal", command=output_text.xview)
-        output_text.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
-        
-        # Grid layout for text and scrollbars
-        output_text.grid(row=0, column=0, sticky="nsew")
-        v_scrollbar.grid(row=0, column=1, sticky="ns")
-        h_scrollbar.grid(row=1, column=0, sticky="ew")
-        
-        text_frame.columnconfigure(0, weight=1)
-        text_frame.rowconfigure(0, weight=1)
-        
-        # Copy current results to new window
-        current_results = self.results_text.get(1.0, tk.END)
-        output_text.insert(1.0, current_results)
-        
-        # Add real-time update functionality
-        def update_output():
-            """Update output window with new results from main window"""
-            main_results = self.results_text.get(1.0, tk.END)
-            current_output = output_text.get(1.0, tk.END)
-            
-            # Only update if there's new content
-            if main_results != current_output:
-                output_text.delete(1.0, tk.END)
-                output_text.insert(1.0, main_results)
-                output_text.see(tk.END)
-            
-            # Schedule next update
-            output_window.after(1000, update_output)  # Update every second
-        
-        # Start real-time updates
-        update_output()
-        
-        # Add keyboard shortcuts
-        def on_key(event):
-            if event.state & 4:  # Ctrl key
-                if event.keysym == 'plus' or event.keysym == 'equal':
-                    change_font_size(1)
-                elif event.keysym == 'minus':
-                    change_font_size(-1)
-                elif event.keysym == 's':
-                    self.save_text_to_file(output_text.get(1.0, tk.END))
-                elif event.keysym == 'c':
-                    self.copy_to_clipboard(output_text.get(1.0, tk.END))
-        
-        output_text.bind('<Key>', on_key)
-        
-        # Focus on the new window
-        output_window.focus_set()
-        output_text.focus_set()
-        
-        # Add window state tracking
-        self.output_windows = getattr(self, 'output_windows', [])
-        self.output_windows.append(output_window)
-        
-        # Clean up when window is closed
-        def on_closing():
-            if output_window in self.output_windows:
-                self.output_windows.remove(output_window)
-            output_window.destroy()
-        
-        output_window.protocol("WM_DELETE_WINDOW", on_closing)
+
 
 
 class TestCaseFrame(ttk.Frame):

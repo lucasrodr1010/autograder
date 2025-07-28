@@ -19,9 +19,7 @@ A visual autograder for COP2273 assignments that can automatically test student 
 - **Single Submission Testing**: Test individual submissions for debugging
 - **Resizable Windows**: Main window and results can be resized for better viewing
 - **Results Management**: Clear, save, and open results in separate windows
-- **Pull-Out Output**: Drag output into separate windows with real-time updates
-- **Drag & Scale**: Resize and move output windows independently
-- **Font Scaling**: Zoom in/out with buttons or keyboard shortcuts (Ctrl+/-)
+
 - **Clipboard Support**: Copy results to clipboard for easy sharing
 
 ## Requirements
@@ -83,16 +81,8 @@ A visual autograder for COP2273 assignments that can automatically test student 
 
    - **Clear Results**: Clear the current results display
    - **Open in New Window**: Open results in a separate, resizable window for better viewing
-   - **Pull Out Output**: Create draggable, scalable output windows with real-time updates
    - **Save Results**: Save results to a text file for later review
    - **Copy to Clipboard**: Copy results to clipboard for easy sharing
-
-8. **Output Window Features**:
-   - **Drag & Move**: Click and drag window title bar to move
-   - **Resize**: Drag window edges to resize
-   - **Font Scaling**: Use A+/A- buttons or Ctrl+/- keyboard shortcuts
-   - **Real-time Updates**: Output windows automatically update as grading progresses
-   - **Keyboard Shortcuts**: Ctrl+S (save), Ctrl+C (copy), Ctrl+/- (zoom)
 
 ### Mode Examples
 
