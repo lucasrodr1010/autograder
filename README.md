@@ -1,6 +1,6 @@
 # COP2273 Autograder
 
-A visual autograder for COP2273 assignments that can automatically test student submissions against a base solution.
+A visual Python autograder designed for the University of Florida programming class COP2273.
 
 ## Features
 
