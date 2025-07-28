@@ -269,10 +269,6 @@ To adapt this autograder for other assignments:
 4. **Modify output comparison** if the new assignment has different output formats
 5. **Set utility paths** for any required helper modules
 
-## License
-
-This autograder is provided as-is for educational use in COP2273.
-
 ```
 
 ```
