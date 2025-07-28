@@ -201,21 +201,35 @@ class AutograderGUI:
             self.utility_path.set(path)
             
     def add_test_case(self):
-        test_case = TestCaseFrame(self.test_cases_frame, len(self.test_cases))
+        test_case = TestCaseFrame(self.test_cases_frame, len(self.test_cases), self)
         test_case.grid(row=len(self.test_cases), column=0, sticky=(tk.W, tk.E), pady=2)
         self.test_cases.append(test_case)
         
     def clear_test_cases(self):
+        # Destroy all test case widgets
         for test_case in self.test_cases:
-            test_case.destroy()
+            try:
+                if test_case.winfo_exists():
+                    test_case.destroy()
+            except tk.TclError:
+                # Widget already destroyed, skip it
+                pass
         self.test_cases.clear()
         self.add_test_case()
         
     def get_test_cases(self):
         cases = []
+        # Clean up destroyed widgets from the list
+        self.test_cases = [tc for tc in self.test_cases if tc.winfo_exists()]
+        
+        # Get valid test cases
         for test_case in self.test_cases:
-            if test_case.is_valid():
-                cases.append(test_case.get_data())
+            try:
+                if test_case.is_valid():
+                    cases.append(test_case.get_data())
+            except tk.TclError:
+                # Widget was destroyed, skip it
+                continue
         return cases
         
     def run_autograder(self):
@@ -889,9 +903,10 @@ class AutograderGUI:
 
 
 class TestCaseFrame(ttk.Frame):
-    def __init__(self, parent, index):
+    def __init__(self, parent, index, autograder_gui):
         super().__init__(parent)
         self.index = index
+        self.autograder_gui = autograder_gui
         
         # Input lines
         ttk.Label(self, text=f"Test Case {index + 1}:").grid(row=0, column=0, sticky=tk.W, padx=(0, 10))
@@ -944,7 +959,14 @@ class TestCaseFrame(ttk.Frame):
         
     def remove(self):
         """Remove this test case"""
-        self.destroy()
+        try:
+            # Remove from autograder's test_cases list
+            if self in self.autograder_gui.test_cases:
+                self.autograder_gui.test_cases.remove(self)
+            self.destroy()
+        except tk.TclError:
+            # Widget already destroyed
+            pass
 
 
 def main():
