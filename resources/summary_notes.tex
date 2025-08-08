@@ -1,0 +1,198 @@
+%--------------------------------------------------------------
+% Sample – Chapter Summary Notes (Generic Template)
+%--------------------------------------------------------------
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{framed}
+\usepackage{parskip}
+\usepackage{multicol}
+\geometry{margin=1in}
+
+\definecolor{gatororange}{HTML}{FA4616}
+
+\pagestyle{empty}
+
+\begin{document}
+\begin{flushleft}\small
+\textbf{COURSE – Summary Notes}\hfill\textbf{CHAPTER/UNIT TITLE}\\
+\hrulefill
+\end{flushleft}
+
+%================================================================
+\section*{\textcolor{gatororange}{Key Ideas and Concepts}}
+
+\subsection*{Why Use This Topic}
+\begin{multicols}{3}
+\begin{itemize}
+  \item Break down complex task
+  \item Encourage reuse and consistency
+  \item Establish clear boundary
+  \item Improve readability and testing
+  \item Enable collaboration
+  \item Streamline workflow
+  \item Support maintainability
+\end{itemize}
+\end{multicols}
+
+\subsection*{Definition Anatomy}
+\begin{framed}\small
+\begin{verbatim}
+procedure Name(parameters):
+    "Brief statement of purpose."
+    # core steps
+    return result   # optional
+\end{verbatim}
+\end{framed}
+\textbf{Core points:} Use a clear name; provide parameters; include a short description; keep steps concise; return a result when appropriate.
+
+\subsection*{Using the Concept}
+\begin{itemize}\itemsep2pt
+  \item Apply with explicit inputs and expected outputs.
+  \item Keep usage consistent across the document.
+  \item Prefer returning values over side effects where possible.
+\end{itemize}
+
+\subsection*{Terms and Roles}
+\begin{itemize}\itemsep2pt
+  \item Parameters: placeholders in a definition.
+  \item Arguments: actual values provided when used.
+  \item Binding: matching supplied values to named placeholders.
+\end{itemize}
+
+\subsection*{Scope / Lifetime}
+\begin{itemize}\itemsep2pt
+  \item Local elements exist only where defined.
+  \item Avoid reliance on hidden state; pass needed data explicitly.
+\end{itemize}
+
+\subsection*{Data Handling}
+\begin{itemize}\itemsep2pt
+  \item Treat inputs as read-only unless modification is intended.
+  \item Document any changes to shared data.
+  \item Make copies when you need to protect originals.
+\end{itemize}
+
+\subsection*{The Orchestration Pattern}
+\begin{framed}\small
+\begin{verbatim}
+procedure main():
+    # coordinate the overall workflow
+    ...
+if run_directly:
+    main()
+\end{verbatim}
+\end{framed}
+
+\subsection*{Module / Section Notes}
+\begin{itemize}\itemsep2pt
+  \item Group related material in a dedicated section.
+  \item Keep each section focused on a single responsibility.
+  \item Use clear import/reference styles to avoid confusion.
+  \item Separate reusable references from example execution.
+\end{itemize}
+
+\subsection*{Condensed Checklist}
+\begin{itemize}\itemsep2pt
+  \item Single, clear purpose
+  \item Minimal, necessary inputs
+  \item Document assumptions
+  \item Return useful results
+  \item Handle edge cases
+  \item Avoid hidden state
+  \item Keep effects predictable
+\end{itemize}
+
+\pagebreak
+%================================================================
+\section*{\textcolor{gatororange}{Troubleshooting \& Reliability}}
+
+\subsection*{Quick Techniques}
+\begin{itemize}\itemsep2pt
+  \item Insert temporary logs at critical points (remove after).
+  \item Assert key assumptions to catch errors early.
+  \item Isolate halves of a process to find failure points.
+  \item Create micro checks for individual units.
+\end{itemize}
+
+\subsection*{Interactive Debugging (Generic)}
+\begin{itemize}\itemsep2pt
+  \item \textbf{Breakpoints:} Pause at lines of interest to inspect state.
+  \item \textbf{Step Controls:} Step over, into, out; continue when ready.
+  \item \textbf{Inspect State:} Review variables and add custom watches.
+  \item \textbf{Console:} Evaluate expressions to confirm expectations.
+  \item \textbf{Call Stack:} Move among frames to trace data flow.
+  \item \textbf{Conditional Stops:} Trigger only when a condition holds.
+  \item \textbf{Tracepoints:} Log messages without stopping execution.
+  \item \textbf{Exceptions:} Break on first error to locate the source.
+  \item \textbf{Workflow:} Reproduce → pause near failure → inspect → adjust → retest.
+  \item \textbf{Cleanup:} Remove debug artifacts after resolving issues.
+\end{itemize}
+
+\subsection*{Common Issues \& Quick Fixes}
+
+\begin{tabular}{|l|l|}
+\hline
+Issue / Smell & Quick Fix \\ \hline
+Missing invocation step & Ensure the action is actually executed \\
+Unclear return value & Standardize outputs and document them \\
+Hidden shared state & Pass data in; return results out \\
+Unreachable steps & Reorder or remove code after early exits \\
+Implicit mutation & Copy inputs or clearly note side effects \\ \hline
+\end{tabular}
+
+\subsection*{Micro Test Driver}
+\begin{framed}\small\scriptsize
+\begin{verbatim}
+def _test():
+    assert example(2, 3) == 5
+    assert classify(0) == "neutral"
+if run_directly:
+    _test()
+\end{verbatim}
+\end{framed}
+
+%================================================================
+\section*{\textcolor{gatororange}{Example Template – Modular Tool}}
+
+\begin{framed}\scriptsize
+\begin{verbatim}
+"""
+example_tool.txt
+Enter sample inputs; report summary statistics and outcomes.
+"""
+
+def summarize(a): 
+    # compute a representative value
+    return sum(a)/len(a)
+
+def variability(a):
+    # compute a simple dispersion metric
+    m = summarize(a)
+    return (sum((x-m)**2 for x in a)/len(a))**0.5
+
+def read_items():
+    items = []
+    while True:
+        s = input("Item (blank=done): ").strip()
+        if not s: break
+        try: items.append(float(s))
+        except ValueError: print("  Invalid entry.")
+    return items
+
+def report(a):
+    print(f"\nN={len(a)}  min={min(a)}  max={max(a)}")
+    print(f"center={summarize(a):.4f}  spread={variability(a):.4f}")
+
+def main():
+    data = read_items()
+    report(data) if data else print("No data provided.")
+
+if run_directly:
+    main()
+\end{verbatim}
+\end{framed}
+
+%========================  END  =============================================
+\end{document}

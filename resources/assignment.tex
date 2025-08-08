@@ -1,0 +1,85 @@
+%--------------------------------------------------------------
+% Example Live-Coding / Practice Coding Assignment Template
+%--------------------------------------------------------------
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{framed}
+\usepackage{float}
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage{textcomp} % for \textless and \textgreater
+\geometry{margin=1in}
+
+% --- Colour palette (UF-inspired) -------------------------------------------
+\definecolor{gatorblue}{HTML}{0021A5}
+\definecolor{gatororange}{HTML}{FA4616}
+\definecolor{consoleblue}{HTML}{1E3FA3}
+\definecolor{lightorange}{RGB}{253,238,222}
+
+% --- Highlight helper --------------------------------------------------------
+\newcommand{\learnednote}{\colorbox{yellow}{%
+\parbox{\dimexpr\linewidth-2\fboxsep}{\textbf{At the top of your file, include:}
+file name, short description, input(s), output(s), your name, and
+\emph{at least three things} you learned from this assignment as Python comments.}}}
+
+% --- Test-case frame ---------------------------------------------------------
+\newenvironment{testcase}{%
+  \def\FrameCommand##1{\colorbox{lightorange}{##1}}%
+  \MakeFramed{\advance\hsize -1em \FrameRestore}%
+}{\endMakeFramed}
+
+% --- Page header -------------------------------------------------------------
+\newcommand{\pageheader}{
+  \begin{flushleft}\small
+  \textbf{COURSE / SECTION HERE}\hfill\textbf{Example LCA/PCA Template}\par
+  \hrulefill
+  \end{flushleft}
+}
+
+\begin{document}
+\pagestyle{empty}
+\pageheader
+
+%======================================================================
+%  ASSIGNMENT N (Short Title)
+%======================================================================
+\section*{\textcolor{gatororange}{Assignment Title Goes Here}}
+% One-sentence objective/overview:
+\textit{Goal: Briefly describe what students will build/learn in this exercise.}
+
+\subsection*{Description}
+Provide 2--4 sentences of context. State the main task, constraints, and any real-world tie-in. Keep it concise and actionable.
+
+\subsection*{Inputs}
+\begin{itemize}
+  \item Describe each input (type/format), e.g., \texttt{filename} (string), numeric value, command, etc.
+  \item Note any assumptions (e.g., lowercase, no punctuation) if relevant.
+\end{itemize}
+
+\subsection*{Outputs}
+\begin{itemize}
+  \item Describe expected outputs and formatting (e.g., fixed decimals, labels).
+  \item Mention special cases (empty input, invalid values) and how to handle them.
+\end{itemize}
+
+\subsection*{\underline{Sample Session / Test Case}}
+\begin{testcase}\small
+\textcolor{consoleblue}{Prompt:} \texttt{\textless{}\textless{} your prompt text \textgreater{}\textgreater{}}\\
+\textcolor{consoleblue}{User:} \texttt{\textless{}\textless{} sample input \textgreater{}\textgreater{}}\\
+\textcolor{consoleblue}{Output:} \texttt{\textless{}\textless{} sample output \textgreater{}\textgreater{}}\\
+\textcolor{consoleblue}{User:} \texttt{\textless{}\textless{} another input \textgreater{}\textgreater{}}\\
+\textcolor{consoleblue}{Output:} \texttt{\textless{}\textless{} corresponding output \textgreater{}\textgreater{}}
+\end{testcase}
+
+\subsection*{\underline{SPECIFICATIONS}}
+\begin{itemize}
+  \item Clear, numbered requirements for correctness.
+  \item Edge cases to cover.
+  \item Performance or style constraints (if any).
+  \item \learnednote
+\end{itemize}
+
+%========================  END  =============================================
+\end{document}
