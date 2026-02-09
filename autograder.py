@@ -9,7 +9,13 @@ import re
 from pathlib import Path
 import difflib
 import traceback
-from PIL import Image, ImageTk
+
+# Optional PIL import for icon support
+try:
+    from PIL import Image, ImageTk
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
 
 
 # ============================================================================
@@ -81,15 +87,16 @@ class AutograderGUI:
         self.root.geometry(f"{UIConfig.WINDOW_WIDTH}x{UIConfig.WINDOW_HEIGHT}")
         self.root.resizable(True, True)
         
-        # Set application icon
-        try:
-            icon_path = os.path.join(os.path.dirname(__file__), UIConfig.ICON_PATH)
-            if os.path.exists(icon_path):
-                icon_image = Image.open(icon_path)
-                self.icon_photo = ImageTk.PhotoImage(icon_image)
-                self.root.iconphoto(True, self.icon_photo)
-        except Exception as e:
-            print(f"Failed to load icon: {e}")
+        # Set application icon (requires PIL)
+        if HAS_PIL:
+            try:
+                icon_path = os.path.join(os.path.dirname(__file__), UIConfig.ICON_PATH)
+                if os.path.exists(icon_path):
+                    icon_image = Image.open(icon_path)
+                    self.icon_photo = ImageTk.PhotoImage(icon_image)
+                    self.root.iconphoto(True, self.icon_photo)
+            except Exception as e:
+                print(f"Failed to load icon: {e}")
         
         # Variables
         self.base_solution_path = tk.StringVar()
