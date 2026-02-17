@@ -87,22 +87,34 @@ class AutograderGUI:
         self.root.geometry(f"{UIConfig.WINDOW_WIDTH}x{UIConfig.WINDOW_HEIGHT}")
         self.root.resizable(True, True)
         
-        # Set application icon (requires PIL)
-        if HAS_PIL:
-            try:
-                icon_path = os.path.join(os.path.dirname(__file__), UIConfig.ICON_PATH)
-                if os.path.exists(icon_path):
+        # Set application icon
+        icon_path = os.path.join(os.path.dirname(__file__), UIConfig.ICON_PATH)
+        if os.path.exists(icon_path):
+            # Set Tk window icon (requires PIL)
+            if HAS_PIL:
+                try:
                     icon_image = Image.open(icon_path)
                     self.icon_photo = ImageTk.PhotoImage(icon_image)
                     self.root.iconphoto(True, self.icon_photo)
-            except Exception as e:
-                print(f"Failed to load icon: {e}")
+                except Exception as e:
+                    print(f"Failed to load window icon: {e}")
+            
+            # Set macOS Dock icon via AppKit
+            if sys.platform == "darwin":
+                try:
+                    from AppKit import NSApplication, NSImage
+                    ns_app = NSApplication.sharedApplication()
+                    ns_image = NSImage.alloc().initWithContentsOfFile_(icon_path)
+                    ns_app.setApplicationIconImage_(ns_image)
+                except Exception as e:
+                    print(f"Failed to set Dock icon: {e}")
         
         # Variables
         self.base_solution_path = tk.StringVar()
         self.assignment_folder_path = tk.StringVar()
         self.mode = tk.StringVar(value="folder")
         self.utility_path = tk.StringVar()
+        self.module_name = tk.StringVar()
         self.test_cases = []
         self.results = []
         self.is_running = False
@@ -176,11 +188,16 @@ class AutograderGUI:
         self.assignment_button = ttk.Button(path_frame, text="Browse", command=self.browse_assignment_path)
         self.assignment_button.grid(row=1, column=2, pady=5)
         
+        # Module Name (optional - for multi-file submissions)
+        ttk.Label(path_frame, text="Module Name (optional):").grid(row=2, column=0, sticky=tk.W, pady=5)
+        module_entry = ttk.Entry(path_frame, textvariable=self.module_name)
+        module_entry.grid(row=2, column=1, sticky=(tk.W, tk.E), padx=(5, 5), pady=5)
+        
         # Utility Path (optional)
-        ttk.Label(path_frame, text="Utility Path (optional):").grid(row=2, column=0, sticky=tk.W, pady=5)
+        ttk.Label(path_frame, text="Utility Path (optional):").grid(row=3, column=0, sticky=tk.W, pady=5)
         utility_entry = ttk.Entry(path_frame, textvariable=self.utility_path)
-        utility_entry.grid(row=2, column=1, sticky=(tk.W, tk.E), padx=(5, 5), pady=5)
-        ttk.Button(path_frame, text="Browse", command=self.browse_utility_path).grid(row=2, column=2, pady=5)
+        utility_entry.grid(row=3, column=1, sticky=(tk.W, tk.E), padx=(5, 5), pady=5)
+        ttk.Button(path_frame, text="Browse", command=self.browse_utility_path).grid(row=3, column=2, pady=5)
         
         # Test Cases Section
         test_frame = ttk.LabelFrame(main_frame, text="Test Cases", padding=str(UIConfig.STANDARD_PADDING))
@@ -670,10 +687,21 @@ class AutograderGUI:
         python_files = list(folder.glob("*.py"))
         if not python_files:
             return None
+        
+        # Build list of module names to skip
+        skip_names = {"fibonacci_ratio", "graphics"}
+        module_name = self.module_name.get().strip()
+        if module_name:
+            # Support comma-separated module names (e.g. "contacts.py, utils.py")
+            for name in module_name.split(","):
+                name = name.strip()
+                if not name.endswith(".py"):
+                    name += ".py"
+                skip_names.add(name)
             
         # Prefer files that don't look like modules
         for file in python_files:
-            if not file.name.startswith("fibonacci_ratio") and not file.name.startswith("graphics"):
+            if file.name not in skip_names and not any(file.name.startswith(s) for s in skip_names if not s.endswith(".py")):
                 return str(file)
                 
         # If no main script found, return first Python file
@@ -1230,9 +1258,29 @@ class TestCaseFrame(ttk.Frame):
             pass
 
 def main():
+    # Set macOS app name so menu bar and Dock show the app title instead of "Python"
+    if sys.platform == "darwin":
+        try:
+            from Foundation import NSBundle
+            bundle = NSBundle.mainBundle()
+            info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
+            info["CFBundleName"] = UIConfig.TITLE
+        except Exception:
+            pass
+
     root = tk.Tk()
-    if sys.platform == "darwin":                       
-        root.tk.call("ttk::style", "theme", "use", "clam")  # force light (clam) theme on Mac
+
+    if sys.platform == "darwin":
+        root.tk.call("ttk::style", "theme", "use", "clam")
+        # Rename the default "Python" menu in the macOS menu bar
+        try:
+            root.tk.call("wm", "attributes", root._w, "-modified", False)
+            menubar = tk.Menu(root, name="apple")
+            root.configure(menu=menubar)
+            root.createcommand("tk::mac::ReopenApplication", root.deiconify)
+        except Exception:
+            pass
+
     app = AutograderGUI(root)
     root.mainloop()
 
