@@ -1,269 +1,79 @@
 # COP2273 Autograder
 
-A visual Python autograder designed for the University of Florida programming class COP2273.
+![COP2273 Autograder Interface](./screenshot.png)
 
-## Features
+A comprehensive, visually-driven Python autograder designed for the University of Florida programming class COP2273. Version 2.0 introduces a completely modernized interface, parallel execution, advanced interactive diffing, and support for file output verification.
 
-- **Visual Interface**: Easy-to-use GUI built with tkinter
-- **Dual Mode Support**:
-  - **Folder Mode**: For assignments with multiple student folders (e.g., PCA6)
-  - **File Mode**: For assignments with single Python files
-- **Utility Import Support**: Import helper modules like graphics.py
-- **Custom Test Cases**: Add multiple test cases through the interface
-- **Robust Comparison**: Handles formatting differences and runtime errors
-- **Real-time Progress**: Shows grading progress and results
-- **Color-coded Results**: Visual indicators for pass/fail status
-- **Scrollable Test Cases**: Easy management of multiple test cases
-- **Automatic Difference Analysis**: Shows output differences for all mismatches
-- **Detailed Output Analysis**: Optional detailed debugging with side-by-side comparison
-- **Single Submission Testing**: Test individual submissions for debugging
-- **Resizable Windows**: Main window and results can be resized for better viewing
-- **Results Management**: Clear, save, and open results in separate windows
+## 🌟 Key Features
 
-- **Clipboard Support**: Copy results to clipboard for easy sharing
+- **Modern Visual Interface:** A clean, responsive dark-themed GUI divided into intuitive workspaces (Configuration, Test Cases, Options, Results, and Inspection).
+- **Parallel Workers:** Significantly speed up grading of large class sizes by running multiple student submissions concurrently.
+- **Granular Evaluation Categories:** Grades are categorized logically—*Perfect, Cosmetic, Partial, Logic Fail,* and *Crash*—to give immediate insight into common failure points.
+- **Advanced Inspection & Visual Diff:** Interactive side-by-side difference viewer that highlights exact missing or unexpected text in student outputs.
+- **File Output Verification (File Check):** Along with standard output (stdout), the autograder can verify if a student's code correctly created/modified a specific file with expected contents.
+- **Dual Mode Support:**
+  - **Folder Mode:** For assignments with multiple student folders.
+  - **File Mode:** For assignments with single self-contained Python files.
+- **Targeted Module Testing:** Specify exactly which `Module Name(s)` to target within complex assignment paths.
+- **Detailed Reporting:** Real-time progress bar, class averages, and exportable reports (Save Report).
+- **Test Single Submission:** Isolate and test individual student submissions to debug tricky edge cases.
 
-## Requirements
+## 🚀 Requirements
 
-- Python 3.6 or higher
-- tkinter (usually included with Python)
-- pathlib (usually included with Python)
+- Python 3.8+ (Recommended)
+- Appropriate GUI framework dependencies (listed in `requirements.txt`)
+- Standard libraries: `pathlib`, `subprocess`
 
-## Installation
+## ⚙️ Installation
 
-1. Clone or download this repository
-2. Create and activate a virtual environment (recommended):
+1. Clone or download this repository.
+2. Create and activate a virtual environment:
    ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
    ```
 3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-## Usage
-
-### Running the Autograder
-
-1. **Start the autograder**:
-
-   ```bash
-   python autograder.py
-   ```
-
-2. **Select Mode**:
-
-   - **Folder Mode**: For assignments with multiple student folders
-   - **File Mode**: For assignments with single Python files
-
-3. **Configure paths**:
-
-   - **Base Solution**: Select the reference solution (file or folder)
-   - **Assignment Path**: Select the assignment folder or file to grade
-   - **Utility Path** (optional): Select folder containing helper modules (e.g., graphics.py)
-
-4. **Add test cases**:
-
-   - Click "Add Test Case" to add new test cases
-   - Each test case should contain the input that will be provided to the programs
-   - Enter your test input in the text area (placeholder text will disappear when you start typing)
-
-5. **Run the autograder**:
-
-   - Click "Run Autograder" to start grading
-   - The system will:
-     - Run the base solution with all test cases
-     - Run each student submission with the same test cases
-     - Compare outputs and generate scores
-     - Display results in real-time
-
-6. **Debugging Options**:
-
-   - **Show Detailed Output Analysis**: Check this to see detailed comparisons when outputs don't match (basic differences are always shown)
-   - **Test Single Submission**: Use this to test and debug individual submissions
-
-7. **Results Management**:
-
-   - **Clear Results**: Clear the current results display
-   - **Open in New Window**: Open results in a separate, resizable window for better viewing
-   - **Save Results**: Save results to a text file for later review
-   - **Copy to Clipboard**: Copy results to clipboard for easy sharing
-
-### Mode Examples
-
-#### Folder Mode (e.g., PCA6)
-
-**Use when each student has their own folder with multiple files**
-
-```
-assignments/PCA6/
-├── LR/                    # Base solution
-│   ├── LR_PCA6.py
-│   └── fibonacci_ratio.py
-├── AF/                    # Student submission
-│   ├── AF_PCA6.py
-│   └── fibonacci_ratio.py
-└── ...                    # More student folders
-```
-
-**Configuration:**
-
-- Mode: Folder
-- Base Solution: `assignments/PCA6/LR/`
-- Assignment Path: `assignments/PCA6/`
-- Utility Path: (leave empty or set to UTILITIES/)
-
-#### File Mode (e.g., single script assignments)
-
-**Use when all Python files are in one folder (self-driving scripts)**
-
-```
-Assignment/
-├── solution.py            # Base solution
-├── student1.py           # Student submission
-├── student2.py           # Student submission
-└── graphics.py           # Utility module
-```
-
-**Configuration:**
-
-- Mode: File
-- Base Solution: `Assignment/solution.py`
-- Assignment Path: `Assignment/` (folder containing all Python files)
-- Utility Path: `Assignment/` (for graphics.py)
-
-### Test Case Format
-
-Test cases should provide input in the format expected by the programs. For example:
-
-**PCA6 Fibonacci Sequence:**
-
-```
-1, 1
-10
-```
-
-**Simple Calculator:**
-
-```
-5
-+
-3
-```
-
-**Graphics Assignment:**
-
-```
-100
-200
-circle
-```
-
-## Output Interpretation
-
-### Score Indicators
-
-- **✅ Green**: 100% correct (all test cases passed)
-- **🟡 Yellow**: 80-99% correct (most test cases passed)
-- **❌ Red**: Below 80% correct (significant issues)
-
-### Error Types
-
-- **Runtime errors**: Programs that crash or have syntax errors
-- **Output mismatch**: Programs that run but produce incorrect output
-- **Timeout**: Programs that take too long to execute (>30 seconds)
-
-### Debugging Output Mismatches
-
-When outputs don't match, the autograder automatically shows:
-
-1. **Basic Difference Analysis** (always shown):
-
-   - Normalized expected vs. actual output
-   - Key differences using diff format
-   - Clear indication of what was expected vs. what was received
-
-2. **Detailed Analysis** (optional): Check "Show Detailed Output Analysis" to see:
-
-   - Raw base and student outputs
-   - Normalized versions for comparison
-   - Complete line-by-line differences using diff
-   - Input that was provided
-
-3. **Test Single Submission**: Use "Test Single Submission" to:
-   - Select a specific student submission
-   - Run it against the base solution
-   - See detailed analysis for each test case
-   - Debug formatting or logic issues
-
-## Customization
-
-### Adding New Test Cases
-
-1. Click "Add Test Case" in the interface
-2. Enter the input values in the text area
-3. Each line represents one input prompt for the program
-
-### Modifying Comparison Logic
-
-The `compare_outputs()` method in the `AutograderGUI` class handles output comparison. You can modify this to:
-
-- Adjust tolerance for floating-point differences
-- Ignore specific formatting differences
-- Add custom comparison rules
-
-### Timeout Settings
-
-The execution timeout is set to 30 seconds per test case. You can modify this in the `execute_script()` method.
-
-### Utility Module Support
-
-To use utility modules like graphics.py:
-
-1. Set the "Utility Path" to the folder containing the utility modules
-2. The autograder will add this path to the PYTHONPATH environment variable
-3. Student submissions can then import these modules normally
-
-## Troubleshooting
-
-### Common Issues
-
-1. **"Base solution failed to run"**:
-
-   - Check that the base solution path contains valid Python files
-   - Ensure the main script can be found and executed
-   - Verify any required utility modules are accessible
-
-2. **"Student submission failed to run"**:
-
-   - Check for syntax errors in student code
-   - Verify that required modules are present
-   - Ensure utility paths are correctly configured
-
-3. **"Output mismatch"**:
-
-   - Check if the comparison is too strict
-   - Verify that test cases are appropriate for the assignment
-   - Consider normalizing output formats
-
-4. **Import errors**:
-   - Set the "Utility Path" to include folders with required modules
-   - Ensure the utility path is correctly formatted
-
-### Debug Mode
-
-To see more detailed error information, you can modify the code to print additional debugging information in the `run_autograder_thread()` method.
-
-## Extending for Other Assignments
-
-To adapt this autograder for other assignments:
-
-1. **Modify the GUI title** and labels as needed
-2. **Update the main script detection** in `find_main_script()` if needed
-3. **Adjust test case format** to match the new assignment's input requirements
-4. **Modify output comparison** if the new assignment has different output formats
-5. **Set utility paths** for any required helper modules
-
-```
-
-```
+## 🖥️ Usage Guide
+
+### 1. Configuration Panel
+Set up the core parameters for the assignment:
+- **Mode Toggle:** Select **Folder Mode** (each student has a directory) or **File Mode** (all student files are in one directory).
+- **Base Solution:** The absolute path to the reference solution (the "answer key").
+- **Assignment Path:** The path to the folder containing the student submissions.
+- **Module Name(s):** The specific Python file to execute (e.g., `contacts.py`).
+- **Utility Path:** (Optional) Folder containing helper scripts or datasets needed by the assignment to run properly.
+
+### 2. Test Cases Panel
+Define how the programs will be tested:
+- Click **+ Add Test Case** to create a test scenario.
+- **stdin:** Provide the exact user input the program should receive, pressing `Enter` for each new input prompt.
+- **File check (opt):** If the assignment requires generating a file (e.g., writing to `contacts.txt`), enter the expected `filename` and the expected contents in the adjacent text box. The autograder will verify the file matches.
+
+### 3. Options
+- **Grade standard output:** Toggle whether stdout should factor into the grade calculation.
+- **Show detailed diff in results:** Enable verbose difference logging for manual review.
+- **Parallel workers:** Choose how many concurrent grading threads to use. Higher numbers grade faster but consume more CPU (e.g., `4`).
+
+### 4. Running & Results
+- Click **▶ Run Autograder**.
+- The top-right **Results** table will populate in real-time. It lists the Student Name, Score, Match Category, Match Tier, and Exception Notes (e.g., `FileNotFoundError`).
+- **Top summary bar:** Quick metrics on the number of Perfect vs Crash submissions, total graded, and the Class Average.
+
+### 5. Inspection Panel
+Select any student in the Results table to inspect their execution in detail:
+- **Interactive Diff Viewer:** Red text denotes expected output that the student missed; Green text denotes extra output the student included.
+- **Test Case Navigation:** Use the **◀ Prev** and **Next ▶** buttons to flip through their performance on individual test cases.
+- **File Output:** A dedicated pane below the stdout diff shows any discrepancies in file-generation tasks (e.g., "Missing file:" or content mismatches).
+
+## 🛠️ Extending and Debugging
+
+- **Testing a Single Student:** If a student's code is crashing the grader or behaving weirdly, use the **Test Single...** button to run *only* their submission and view isolated traceback logs.
+- **Grading Tolerances:** Look into the autograder core engine to adjust how strict the string-matching behaves (e.g., whitespace, punctuation, capitalization).
+- **Custom Utility Modules:** Ensure any external modules or CSV files standard to the class are placed in the directory assigned to **Utility Path** so all student scripts can access them properly during execution test runs.
+
+---
+*Developed for standardizing and streamlining Python grading for COP2273.*
